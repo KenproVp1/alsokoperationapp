@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Area {
+  id        String    @id
+  name      String
+  companies Company[]
+  sites     Site[]
+  teams     Team[]
+  incidents Incident[]
+}
+
+model Company {
+  id        String    @id
+  name      String
+  type      String    
+  sla       String    
+  contact   String
+  phone     String
+  areaId    String
+  area      Area      @relation(fields: [areaId], references: [id])
+  sites     Site[]
+  surveys   Survey[]
+  incidents Incident[]
+  alarms    Alarm[]
+}
+
+model Site {
+  id        String    @id
+  name      String
+  cid       String
+  company   Company   @relation(fields: [cid], references: [id])
+  areaId    String
+  area      Area      @relation(fields: [areaId], references: [id])
+  addr      String
+  type      String
+  lat       Float
+  lng       Float
+  budget    Int
+  pos       Int
+  surveys   Survey[]
+  incidents Incident[]
+  alarms    Alarm[]
+  guards    Guard[]
+}
+
+model Template {
+  id       String     @id
+  name     String
+  active   Boolean
+  questions Question[]
+}
+
+model Question {
+  id         String   @id
+  text       String
+  type       String
+  weight     Float
+  templateId String
+  template   Template @relation(fields: [templateId], references: [id])
+}
+
+model Survey {
+  id        String    @id
+  siteId    String
+  site      Site      @relation(fields: [siteId], references: [id])
+  cid       String
+  company   Company   @relation(fields: [cid], references: [id])
+  evaluator String
+  position  String
+  period    String
+  date      String
+  answers   String    // JSON stringified array of numbers
+  score     Float
+  risk      String
+}
+
+model Incident {
+  id        String    @id
+  siteId    String
+  site      Site      @relation(fields: [siteId], references: [id])
+  areaId    String
+  area      Area      @relation(fields: [areaId], references: [id])
+  cid       String
+  company   Company   @relation(fields: [cid], references: [id])
+  type      String
+  sev       Int
+  status    String
+  what      String
+  why       String
+  who       String
+  when      String
+  where     String
+  how       String
+  createdBy String
+  createdAt String
+  actions   Action[]
+}
+
+model Action {
+  id         String   @id
+  desc       String
+  resp       String
+  deadline   String
+  status     String
+  incidentId String
+  incident   Incident @relation(fields: [incidentId], references: [id])
+}
+
+model Alarm {
+  id           String    @id
+  devId        String
+  siteId       String
+  site         Site      @relation(fields: [siteId], references: [id])
+  cid          String
+  company      Company   @relation(fields: [cid], references: [id])
+  type         String
+  cause        String
+  falseAlarm   Boolean
+  startTime    String
+  receiveTime  String
+  processTime  String
+  recoveryTime String
+  teamId       String?
+  team         Team?     @relation(fields: [teamId], references: [id])
+  status       String
+  dispatches   Dispatch[]
+}
+
+model Team {
+  id         String     @id
+  name       String
+  areaId     String
+  area       Area       @relation(fields: [areaId], references: [id])
+  members    Int
+  vehicle    String
+  status     String
+  sla        Int
+  activeSite String?
+  alarms     Alarm[]
+  dispatches Dispatch[]
+}
+
+model Dispatch {
+  id           String   @id
+  alarmId      String
+  alarm        Alarm    @relation(fields: [alarmId], references: [id])
+  teamId       String
+  team         Team     @relation(fields: [teamId], references: [id])
+  dispatchTime String
+  arrivalTime  String
+  finishTime   String
+  result       String
+}
+
+model Guard {
+  id     String  @id
+  name   String
+  title  String
+  siteId String
+  site   Site    @relation(fields: [siteId], references: [id])
+  shift  String
+  status String
+  phone  String
+  joined String
+  cert   Boolean
+}
+
+model User {
+  id       String  @id
+  name     String
+  ini      String
+  role     String
+  areaId   String?
+  col      String
+  email    String?
+  clientId String?
+}
